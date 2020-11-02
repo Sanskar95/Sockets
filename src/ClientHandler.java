@@ -30,17 +30,22 @@ class ClientHandler implements Runnable
                     this.clientSocket.close();
                     break;
                 }
-                String messageToSend = received.split("-")[1];
-                String recipient = received.split("-")[0];
+//                String messageToSend = received.split("-")[1];
+//                String recipient = received.split("-")[0];
+                String messageToSend = received;
 
 
                 for (ClientHandler clientHandler : ChatServer.clientHandlers)
                 {
-                    if (clientHandler.getClientName().equals(recipient))
-                    {
-                        clientHandler.getDataOutputStream().writeUTF(this.getClientName()+" : "+messageToSend);
-                        break;
+                    if(!clientHandler.getClientName().equals(this.getClientName())){
+                        clientHandler.getDataOutputStream().writeUTF(this.getClientName() + ": "+ messageToSend);
                     }
+//                    if (clientHandler.getClientName().equals(recipient))
+//                    {
+//                        clientHandler.getDataOutputStream().writeUTF(this.getClientName()+" : "+messageToSend);
+//
+//                        break;
+//                    }
                 }
             } catch (IOException e) {
 

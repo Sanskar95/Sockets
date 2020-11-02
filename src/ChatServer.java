@@ -9,7 +9,7 @@ public class ChatServer
 
     public static void main(String[] args) throws IOException
     {
-        ServerSocket ss = new ServerSocket(8000);
+        ServerSocket ss = new ServerSocket(5000);
         Socket clientSocket;
 
         while (true)

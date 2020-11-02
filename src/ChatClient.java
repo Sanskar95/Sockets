@@ -7,7 +7,7 @@ public class ChatClient
 
     public static void main(String args[]) throws IOException {
         Scanner scn = new Scanner(System.in);
-        Socket  socket = new Socket("127.0.0.1", 8000);
+        Socket  socket = new Socket("127.0.0.1", 5000);
         System.out.println("Connected");
 
         DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
