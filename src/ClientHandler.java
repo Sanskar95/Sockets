@@ -40,12 +40,6 @@ class ClientHandler implements Runnable
                     if(!clientHandler.getClientName().equals(this.getClientName())){
                         clientHandler.getDataOutputStream().writeUTF(this.getClientName() + ": "+ messageToSend);
                     }
-//                    if (clientHandler.getClientName().equals(recipient))
-//                    {
-//                        clientHandler.getDataOutputStream().writeUTF(this.getClientName()+" : "+messageToSend);
-//
-//                        break;
-//                    }
                 }
             } catch (IOException e) {
 
