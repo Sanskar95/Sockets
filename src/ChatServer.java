@@ -1,38 +1,61 @@
-
 import java.io.*;
 import java.util.*;
 import java.net.*;
+import java.util.stream.Collectors;
 
-public class ChatServer
-{
-    public   static   List<ClientHandler>  clientHandlers = new ArrayList<>();
+public class ChatServer {
 
-    public static void main(String[] args) throws IOException
-    {
-        ServerSocket ss = new ServerSocket(5000);
-        Socket clientSocket;
+    public static List<ClientHandler> clientHandlers = new ArrayList<>();
 
-        while (true)
-        {
-            clientSocket = ss.accept();
+    private void start(int port) throws IOException {
 
-            System.out.println("New client is : " + clientSocket);
+        ServerSocket serverSocket = new ServerSocket(port);
 
-            DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-            DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+        System.out.println("ChatServer is listening on port " + port);
 
+        while(true) {
+            Socket clientSocket = serverSocket.accept();
+            String clientName = "client" + (clientHandlers.size() + 1);
 
-            Integer clientIndex= clientHandlers.size()+1;
-            ClientHandler clientHandler = new ClientHandler("client" + clientIndex, dataInputStream, dataOutputStream, clientSocket);
-
-            Thread thread = new Thread(clientHandler);
-            System.out.println("Adding this client to active client list");
+            ClientHandler clientHandler = new ClientHandler(clientName, clientSocket, this);
             clientHandlers.add(clientHandler);
-            clientHandlers.forEach(clientHandler1 -> System.out.println(clientHandler1.getClientName()));
-            thread.start();
 
+            new Thread(clientHandler).start();
 
+            System.out.println("New client connected");
+            String registeredClients = clientHandlers.stream().map(ClientHandler::getClientName)
+                    .collect(Collectors.joining(", "));
+            System.out.println("Registered clients: " + registeredClients);
+
+            System.out.println("ChatServer is listening on port " + port);
         }
     }
-}
 
+    void broadcast(String message, String sendingClient) throws IOException {
+
+        String clientsForBroadcast = clientHandlers.stream()
+                .filter(ch -> !ch.getClientName().equals(sendingClient))
+                .map(ClientHandler::getClientName)
+                .collect(Collectors.joining(", "));
+        System.out.printf("Broadcast message \"%s\" to %s%n", message, clientsForBroadcast);
+
+        for (ClientHandler clientHandler : clientHandlers) {
+            if (!clientHandler.getClientName().equals(sendingClient)) {
+                clientHandler.getDataOutputStream().writeUTF(String.format("%s: %s", sendingClient, message));
+            }
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+
+        if(args.length != 1) {
+            System.out.println("One argument required: <port-number>");
+            System.out.println("Syntax: java ChatServer <port-number>");
+            System.exit(0);
+        }
+
+        int port = Integer.parseInt(args[0]);
+
+        new ChatServer().start(port);
+    }
+}

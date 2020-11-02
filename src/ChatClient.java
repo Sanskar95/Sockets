@@ -2,48 +2,77 @@ import java.net.*;
 import java.io.*;
 import java.util.Scanner;
 
-public class ChatClient
-{
+public class ChatClient {
 
-    public static void main(String args[]) throws IOException {
-        Scanner scn = new Scanner(System.in);
-        Socket  socket = new Socket("127.0.0.1", 5000);
-        System.out.println("Connected");
+    private void start(String host, int port) throws IOException {
 
-        DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+        Socket  socket = new Socket(host, port);
+        System.out.printf("Connected to %s:%d%n", host, port);
 
-        DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+        new ReadThread(socket).start();
+        new WriteThread(socket).start();
+    }
 
+    public static void main(String[] args) throws IOException {
 
-        Thread sendMessage = new Thread(() -> {
-            while (true) {
+        if(args.length != 2) {
+            System.out.println("Two arguments required: <host-address> <port-number>");
+            System.out.println("Syntax: java ChatClient <host-address> <port-number>");
+            System.exit(0);
+        }
 
-                // read the message to deliver.
-                String msg = scn.nextLine();
+        String host = args[0];
+        int port = Integer.parseInt(args[1]);
 
-                try {
-                    // write on the output stream
-                    dataOutputStream.writeUTF(msg);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        new ChatClient().start(host, port);
+    }
 
-        Thread readMessage = new Thread(() -> {
+    private static class ReadThread extends Thread {
 
-            while (true) {
-                try {
-                    String incomingMessage = dataInputStream.readUTF();
+        private final Socket socket;
+
+        public ReadThread(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+            try {
+                DataInputStream in = new DataInputStream(socket.getInputStream());
+
+                while(true) {
+                    String incomingMessage = in.readUTF();
                     System.out.println(incomingMessage);
-                } catch (IOException e) {
-
-                    e.printStackTrace();
                 }
+            } catch(IOException e) {
+                e.printStackTrace();
             }
-        });
-sendMessage.start();
-readMessage.start();
+        }
+    }
+
+    private static class WriteThread extends Thread {
+
+        private final Socket socket;
+
+        private final Scanner scanner = new Scanner(System.in);
+
+        public WriteThread(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+            try {
+                DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+
+                while(true) {
+                    String messageToSend = scanner.nextLine();
+                    out.writeUTF(messageToSend);
+                }
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
 

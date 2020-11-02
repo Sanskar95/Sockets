@@ -3,49 +3,49 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-class ClientHandler implements Runnable
-{
-    private String clientName;
-   private  final DataInputStream dataInputStream;
-   private final DataOutputStream dataOutputStream;
-    private Socket clientSocket;
+class ClientHandler implements Runnable {
 
-    public ClientHandler(String clientName, DataInputStream dataInputStream, DataOutputStream dataOutputStream,  Socket clientSocket) {
+    public static final String EXIT_COMMAND = "exit";
+
+    private final String clientName;
+    private final Socket clientSocket;
+    private final ChatServer chatServer;
+
+    private DataInputStream dataInputStream;
+    private DataOutputStream dataOutputStream;
+
+    public ClientHandler(String clientName, Socket clientSocket, ChatServer chatServer) {
         this.clientName = clientName;
-        this.dataInputStream = dataInputStream;
-        this.dataOutputStream = dataOutputStream;
         this.clientSocket = clientSocket;
+        this.chatServer = chatServer;
     }
 
     @Override
     public void run() {
-        while (true)
-        {
-            try
-            {
-                String received = dataInputStream.readUTF();
-                System.out.println(received);
 
-                if(received.equals("logout")){
+        try {
+            dataInputStream = new DataInputStream(clientSocket.getInputStream());
+            dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        while(true) {
+            try {
+                String receivedMessage = dataInputStream.readUTF();
+
+                /*if(receivedMessage.equalsIgnoreCase(EXIT_COMMAND)){
                     this.clientSocket.close();
                     break;
-                }
-//                String messageToSend = received.split("-")[1];
-//                String recipient = received.split("-")[0];
-                String messageToSend = received;
+                }*/
+                // Closing socket requires to inform server that client is not connected anymore.
+                // Todo: Make server listen to exit messages
 
+                chatServer.broadcast(receivedMessage, this.clientName);
 
-                for (ClientHandler clientHandler : ChatServer.clientHandlers)
-                {
-                    if(!clientHandler.getClientName().equals(this.getClientName())){
-                        clientHandler.getDataOutputStream().writeUTF(this.getClientName() + ": "+ messageToSend);
-                    }
-                }
-            } catch (IOException e) {
-
+            } catch(IOException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -53,23 +53,7 @@ class ClientHandler implements Runnable
         return clientName;
     }
 
-    public void setClientName(String clientName) {
-        this.clientName = clientName;
-    }
-
-    public DataInputStream getDataInputStream() {
-        return dataInputStream;
-    }
-
     public DataOutputStream getDataOutputStream() {
         return dataOutputStream;
-    }
-
-    public Socket getClientSocket() {
-        return clientSocket;
-    }
-
-    public void setClientSocket(Socket clientSocket) {
-        this.clientSocket = clientSocket;
     }
 }
