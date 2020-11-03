@@ -17,7 +17,7 @@ can be started with `java ChatClient <host-address> <port-number>`.
 
 The following picture represents the start of a `ChatServer` and three instances of the class `ChatClient`.
 
-![TCP Example With Three Clients](https://github.com/Sanskar95/Sockets/tcp-example.PNG "TCP Example With Three Clients")
+![TCP Example With Three Clients](https://github.com/Sanskar95/Sockets/blob/master/tcp-example.PNG "TCP Example With Three Clients")
 
 The server listens to connections on port 5000. The first three lines represent the TCP calls when the first client 
 starts. The three lines show the three-way TCP handshake with the flags `SYN`, `SYN, ACK` and `ACK`. Also, the ports 
